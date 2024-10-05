@@ -25,28 +25,35 @@ const SoundGrid = forwardRef((_, ref) => {
       return notes[colIndex];
     };
 
-    const playSoundForRow = (rowIndex: number) => {
-      const synth = new Tone.Synth().toDestination();
+    const playSoundsForRow = (rowIndex: number) => {
+      const polySynth = new Tone.PolySynth(Tone.Synth).toDestination(); // Polyphonic Synth
+
+      const notesToPlay: string[] = [];
       enabledBoxes[rowIndex].forEach((isEnabled, colIndex) => {
         if (isEnabled) {
-          const note = getNoteFromColumn(colIndex); // Get note from column index
-          synth.triggerAttackRelease(note, "8n");
+          const note = getNoteFromColumn(colIndex);
+          notesToPlay.push(note);
         }
       });
+
+      if (notesToPlay.length > 0) {
+        polySynth.triggerAttackRelease(notesToPlay, "8n");
+      }
     };
 
     const interval = setInterval(() => {
       setLinePosition((prev) => {
         const newPosition = (prev + 1) % ROWS;
-        playSoundForRow(newPosition);
+        playSoundsForRow(newPosition);
         return newPosition;
       });
     }, 2000 / ROWS);
+
     return () => clearInterval(interval);
   }, [enabledBoxes]);
 
   return (
-    <div className="flex items-center justify-center bg-gray-900 w-96 relative">
+    <div className="flex items-center justify-center bg-gray-900 w-96 relative py-3">
       <Grid enabledBoxes={enabledBoxes} setEnabledBoxes={setEnabledBoxes} />
       <div
         className="absolute top-0 left-0 w-full h-full pointer-events-none z-20"
@@ -54,7 +61,7 @@ const SoundGrid = forwardRef((_, ref) => {
           transform: `translateY(${linePosition * (100 / ROWS)}%)`,
         }}
       >
-        <div className="w-full h-4 mt-2 rounded-md bg-[#474956]" />
+        <div className="w-full h-4 mt-3 rounded-md bg-[#474956]" />
       </div>
     </div>
   );
