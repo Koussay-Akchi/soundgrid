@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Box from './Box';
 
 const ROWS = 16;
@@ -8,6 +8,7 @@ const Grid: React.FC = () => {
   const [enabledBoxes, setEnabledBoxes] = useState<boolean[][]>(
     Array.from({ length: ROWS }, () => Array(COLUMNS).fill(false))
   );
+  const [linePosition, setLinePosition] = useState(0);
 
   const toggleBox = (row: number, col: number) => {
     const newEnabledBoxes = [...enabledBoxes];
@@ -15,8 +16,15 @@ const Grid: React.FC = () => {
     setEnabledBoxes(newEnabledBoxes);
   };
 
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setLinePosition((prev) => (prev + 1) % ROWS);
+    }, 5000 / ROWS);
+    return () => clearInterval(interval);
+  }, []);
+
   return (
-    <div className="grid grid-cols-10 gap-1">
+    <div className="relative grid grid-cols-10 gap-1">
       {enabledBoxes.map((row, rowIndex) => (
         row.map((isEnabled, colIndex) => (
           <Box
@@ -26,6 +34,15 @@ const Grid: React.FC = () => {
           />
         ))
       ))}
+      <div
+        className="absolute top-0 left-0 w-full h-full pointer-events-none z-50"
+        style={{
+          transform: `translateY(${linePosition * 100}%)`,
+          transition: 'transform 125ms linear',
+        }}
+      >
+        <div className="w-full h-[2px] bg-red-500" />
+      </div>
     </div>
   );
 };
