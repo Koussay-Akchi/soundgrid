@@ -1,18 +1,12 @@
-import React, { useState } from 'react';
-import Box from './Box';
-
-const ROWS = 16;
-const COLUMNS = 10;
+import React from "react";
+import Box from "./Box";
 
 interface GridProps {
-  linePosition: number;
+  enabledBoxes: boolean[][];
+  setEnabledBoxes: React.Dispatch<React.SetStateAction<boolean[][]>>;
 }
 
-const Grid: React.FC<GridProps> = ({ linePosition }) => {
-  const [enabledBoxes, setEnabledBoxes] = useState<boolean[][]>(
-    Array.from({ length: ROWS }, () => Array(COLUMNS).fill(false))
-  );
-
+const Grid: React.FC<GridProps> = ({ enabledBoxes, setEnabledBoxes }) => {
   const toggleBox = (row: number, col: number) => {
     const newEnabledBoxes = [...enabledBoxes];
     newEnabledBoxes[row][col] = !newEnabledBoxes[row][col];
