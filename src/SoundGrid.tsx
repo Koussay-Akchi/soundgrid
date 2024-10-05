@@ -1,15 +1,23 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect, forwardRef, useImperativeHandle } from "react";
 import "./index.css";
 import Grid from "./Grid";
 import * as Tone from "tone";
 
 const ROWS = 16;
 
-const SoundGrid: React.FC = () => {
+const SoundGrid = forwardRef((_, ref) => {
   const [linePosition, setLinePosition] = useState(0);
   const [enabledBoxes, setEnabledBoxes] = useState<boolean[][]>(
     Array.from({ length: ROWS }, () => Array(10).fill(false))
   );
+
+  useImperativeHandle(ref, () => ({
+    resetAllBoxes: () => {
+      setEnabledBoxes(
+        Array.from({ length: ROWS }, () => Array(10).fill(false))
+      );
+    },
+  }));
 
   useEffect(() => {
     const notes = ["C4", "D4", "E4", "F4", "G4", "A4", "B4", "C5", "D5", "E5"];
@@ -50,6 +58,6 @@ const SoundGrid: React.FC = () => {
       </div>
     </div>
   );
-};
+});
 
 export default SoundGrid;
