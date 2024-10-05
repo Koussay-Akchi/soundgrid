@@ -23,7 +23,7 @@ const SoundGrid: React.FC = () => {
           transform: `translateY(${linePosition * (100 / ROWS)}%)`,
         }}
       >
-        <div className="w-full h-9 bg-[#474956]" />
+        <div className="w-full h-4 mt-2 rounded-md bg-[#474956]" />
       </div>
     </div>
   );
