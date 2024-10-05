@@ -3,7 +3,7 @@ import SoundGrid from "./SoundGrid";
 
 function App() {
   return (
-    <div>
+    <div className=" overflow-hidden">
       <SoundGrid />
       <h1>Sound-Grid</h1>
     </div>

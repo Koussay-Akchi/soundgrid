@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import Box from './Box';
+import React, { useState, useEffect } from "react";
+import Box from "./Box";
 
 const ROWS = 16;
 const COLUMNS = 10;
@@ -19,13 +19,13 @@ const Grid: React.FC = () => {
   useEffect(() => {
     const interval = setInterval(() => {
       setLinePosition((prev) => (prev + 1) % ROWS);
-    }, 5000 / ROWS);
+    }, 2000 / ROWS);
     return () => clearInterval(interval);
   }, []);
 
   return (
-    <div className="relative grid grid-cols-10 gap-1">
-      {enabledBoxes.map((row, rowIndex) => (
+    <div className="relative grid grid-cols-10 gap-1 ">
+      {enabledBoxes.map((row, rowIndex) =>
         row.map((isEnabled, colIndex) => (
           <Box
             key={`${rowIndex}-${colIndex}`}
@@ -33,15 +33,14 @@ const Grid: React.FC = () => {
             toggleBox={() => toggleBox(rowIndex, colIndex)}
           />
         ))
-      ))}
+      )}
       <div
-        className="absolute top-0 left-0 w-full h-full pointer-events-none z-50"
+        className="absolute top-0 left-0 w-full h-full pointer-events-none z-20"
         style={{
-          transform: `translateY(${linePosition * 100}%)`,
-          transition: 'transform 125ms linear',
+          transform: `translateY(${linePosition * (100 / ROWS)}%)`,
         }}
       >
-        <div className="w-full h-[2px] bg-red-500" />
+        <div className="w-full h-9 bg-[#474956]" />
       </div>
     </div>
   );

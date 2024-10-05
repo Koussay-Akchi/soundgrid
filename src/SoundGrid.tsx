@@ -5,7 +5,7 @@ import Grid from './Grid';
 
 const SoundGrid: React.FC = () => {
   return (
-    <div className="flex items-center justify-center bg-gray-900">
+    <div className="flex items-center justify-center bg-gray-900 w-96">
       <Grid />
     </div>
   );
