@@ -56,7 +56,7 @@ const SoundGrid = forwardRef((_, ref) => {
 
   return (
     <div>{linePosition}/{ROWS}
-    <div className="flex items-center justify-center bg-gray-900 w-96 relative py-3">
+    <div className="flex items-center justify-center bg-gray-900 w-96 relative py-3  rounded-lg">
       <Grid enabledBoxes={enabledBoxes} setEnabledBoxes={setEnabledBoxes} />
       <div
         className="absolute top-0 left-0 w-full h-full pointer-events-none z-20"
