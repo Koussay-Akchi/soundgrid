@@ -1,50 +1,45 @@
-# React + TypeScript + Vite
+# SoundGrid 🎵
+An interactive sound grid where users can compose simple musical patterns by toggling individual cells in a grid. 
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Each row represents a step in time (2 seconds), and each column corresponds to a different musical note. As the playback line moves across the grid, it triggers the notes in the active cells. 
 
-Currently, two official plugins are available:
+## 👉 [Live website](https://soundgrid.web.app/)
+<div style="display: flex; gap: 20px;">
+    <img src="/soundgrid.png" alt="screenshot" height="300">
+</div>
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## Installation
 
-## Expanding the ESLint configuration
+To run this project locally, follow these steps:
 
-If you are developing a production application, we recommend updating the configuration to enable type aware lint rules:
+1. Clone the repository:
 
-- Configure the top-level `parserOptions` property like this:
+   ```bash
+   git clone https://github.com/Koussay-Akchi/soundgrid.git
+   ```
 
-```js
-export default tseslint.config({
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
-```
+2. Navigate to the project directory:
 
-- Replace `tseslint.configs.recommended` to `tseslint.configs.recommendedTypeChecked` or `tseslint.configs.strictTypeChecked`
-- Optionally add `...tseslint.configs.stylisticTypeChecked`
-- Install [eslint-plugin-react](https://github.com/jsx-eslint/eslint-plugin-react) and update the config:
+   ```bash
+   cd soundgrid
+   ```
 
-```js
-// eslint.config.js
-import react from 'eslint-plugin-react'
+3. Install the required dependencies:
 
-export default tseslint.config({
-  // Set the react version
-  settings: { react: { version: '18.3' } },
-  plugins: {
-    // Add the react plugin
-    react,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended rules
-    ...react.configs.recommended.rules,
-    ...react.configs['jsx-runtime'].rules,
-  },
-})
-```
+   ```bash
+   npm install
+   ```
+
+4. Start the development server:
+
+   ```bash
+   npm run dev
+   ```
+
+5. Open your browser and go to `http://localhost:5173/`.
+
+## Usage
+
+- Click on any box to activate/deactivate it.
+- The moving line triggers sound playback for the active boxes in the current row.
+- Click the reset button to clear the grid and stop all sounds.
