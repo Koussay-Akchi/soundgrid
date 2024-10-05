@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import Box from './Box';
 
 const ROWS = 16;
 const COLUMNS = 10;
@@ -18,10 +19,10 @@ const Grid: React.FC = () => {
     <div className="grid grid-cols-10 gap-1">
       {enabledBoxes.map((row, rowIndex) => (
         row.map((isEnabled, colIndex) => (
-          <div
+          <Box
             key={`${rowIndex}-${colIndex}`}
-            onClick={() => toggleBox(rowIndex, colIndex)}
-            className={`h-8 w-8 ${isEnabled ? 'bg-white shadow-md' : 'bg-gray-800'} transition-all duration-200`}
+            isEnabled={isEnabled}
+            toggleBox={() => toggleBox(rowIndex, colIndex)}
           />
         ))
       ))}
