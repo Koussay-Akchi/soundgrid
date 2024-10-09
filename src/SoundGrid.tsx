@@ -8,27 +8,59 @@ import {
 } from "react";
 import "./index.css";
 import Grid from "./Grid";
-import * as Tone from "tone";
-
+import { GiXylophone } from "react-icons/gi";
+import { GiPianoKeys } from "react-icons/gi";
+import Soundfont from "soundfont-player";
+import { FaGuitar } from "react-icons/fa";
+import { GiBanjo } from "react-icons/gi";
+import { GiMusicalKeyboard } from "react-icons/gi";
+import { TbTriangleOff } from "react-icons/tb";
 const ROWS = 16;
 const notes = ["C4", "D4", "E4", "F4", "G4", "A4", "B4", "C5", "D5", "E5"];
 // gap needs to be counted here :'(
 const BOX_HEIGHT = 2.25;
+
+const instruments = [
+  "acoustic_grand_piano",
+  "acoustic_guitar_nylon",
+  "kalimba",
+  "glockenspiel",
+  "lead_1_square",
+  "banjo",
+];
 
 const SoundGrid = forwardRef((_, ref) => {
   const [linePosition, setLinePosition] = useState(0);
   const [enabledBoxes, setEnabledBoxes] = useState<boolean[][]>(
     Array.from({ length: ROWS }, () => Array(10).fill(false))
   );
+  const [selectedInstrument, setSelectedInstrument] = useState(instruments[0]);
 
-  const polySynthRef = useRef<Tone.PolySynth | null>(null);
+  const instrumentRef = useRef<Soundfont.Player | null>(null);
+  const audioContextRef = useRef<AudioContext | null>(null);
 
   useEffect(() => {
-    polySynthRef.current = new Tone.PolySynth(Tone.Synth).toDestination();
+    audioContextRef.current = new (window.AudioContext ||
+      window.AudioContext)();
+    loadInstrument(selectedInstrument);
+
     return () => {
-      polySynthRef.current?.dispose();
+      audioContextRef.current?.close();
     };
-  }, []);
+  }, [selectedInstrument]);
+
+  const loadInstrument = async (instrumentName: string) => {
+    if (audioContextRef.current) {
+      instrumentRef.current = await Soundfont.instrument(
+        audioContextRef.current,
+        instrumentName as Soundfont.InstrumentName
+      );
+    }
+  };
+
+  useEffect(() => {
+    loadInstrument(selectedInstrument);
+  }, [selectedInstrument]);
 
   useImperativeHandle(ref, () => ({
     resetAllBoxes: () => {
@@ -47,8 +79,12 @@ const SoundGrid = forwardRef((_, ref) => {
         }
       });
 
-      if (notesToPlay.length > 0 && polySynthRef.current) {
-        polySynthRef.current.triggerAttackRelease(notesToPlay, "8n");
+      if (notesToPlay.length > 0 && instrumentRef.current) {
+        notesToPlay.forEach((note) =>
+          instrumentRef.current
+            ?.play(note)
+            .stop(audioContextRef.current!.currentTime + 0.2)
+        );
       }
     },
     [enabledBoxes]
@@ -68,7 +104,28 @@ const SoundGrid = forwardRef((_, ref) => {
 
   return (
     <div className="bg-gray-900 w-96 pb-3 rounded-lg mt-2">
-      {linePosition}/{ROWS}
+      <div className="text-white mb-2">
+        {linePosition}/{ROWS}
+      </div>
+      <select
+        value={selectedInstrument}
+        onChange={(e) => setSelectedInstrument(e.target.value)}
+        className="mb-2 p-1 rounded"
+      >
+        {instruments.map((instrument) => (
+          <option key={instrument} value={instrument}>
+            {instrument.replace(/_/g, " ")}
+          </option>
+        ))}
+      </select>
+      <div className=" flex gap-2 mb-2 justify-center">
+        <FaGuitar size={30} />
+        <GiXylophone size={30} />
+        <GiPianoKeys size={30} />
+        <GiBanjo size={30} />
+        <TbTriangleOff size={30} />
+        <GiMusicalKeyboard size={30} />
+      </div>
       <div className="flex items-center justify-center relative">
         <Grid enabledBoxes={enabledBoxes} setEnabledBoxes={setEnabledBoxes} />
         <div
