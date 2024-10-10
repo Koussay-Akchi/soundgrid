@@ -3,8 +3,8 @@ import {
   useEffect,
   forwardRef,
   useImperativeHandle,
-  useCallback,
   useRef,
+  useCallback,
 } from "react";
 import "./index.css";
 import Grid from "./Grid";
@@ -35,9 +35,7 @@ const instruments = [
 
 const SoundGrid = forwardRef((_, ref) => {
   const [linePosition, setLinePosition] = useState(0);
-  const [enabledBoxes, setEnabledBoxes] = useState<boolean[][]>(
-    Array.from({ length: ROWS }, () => Array(10).fill(false))
-  );
+  const [enabledBoxes, setEnabledBoxes] = useState<Set<string>>(new Set());
   const [selectedInstrument, setSelectedInstrument] = useState(
     "acoustic_grand_piano"
   );
@@ -66,20 +64,18 @@ const SoundGrid = forwardRef((_, ref) => {
 
   useImperativeHandle(ref, () => ({
     resetAllBoxes: () => {
-      setEnabledBoxes(
-        Array.from({ length: ROWS }, () => Array(10).fill(false))
-      );
+      setEnabledBoxes(new Set());
     },
   }));
 
   const playSoundsForRow = useCallback(
     (rowIndex: number) => {
       const notesToPlay: string[] = [];
-      enabledBoxes[rowIndex].forEach((isEnabled, colIndex) => {
-        if (isEnabled) {
+      for (let colIndex = 0; colIndex < notes.length; colIndex++) {
+        if (enabledBoxes.has(`${rowIndex}-${colIndex}`)) {
           notesToPlay.push(notes[colIndex]);
         }
-      });
+      }
 
       if (notesToPlay.length > 0 && instrumentRef.current) {
         notesToPlay.forEach((note) =>
@@ -102,7 +98,7 @@ const SoundGrid = forwardRef((_, ref) => {
     }, 2000 / ROWS);
 
     return () => clearInterval(interval);
-  }, [playSoundsForRow]);
+  }, [enabledBoxes, playSoundsForRow]);
 
   return (
     <div className="bg-gray-900 w-96 pb-3 rounded-lg mt-2">
