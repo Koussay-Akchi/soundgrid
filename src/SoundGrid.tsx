@@ -120,7 +120,7 @@ const SoundGrid = forwardRef((_, ref) => {
             )}
             <instrument.icon
               size={30}
-              className={`text-white cursor-pointer ${
+              className={` cursor-pointer ${
                 selectedInstrument === instrument.name
                   ? "text-blue-500"
                   : "hover:text-blue-300"
