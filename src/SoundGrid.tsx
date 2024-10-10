@@ -127,7 +127,7 @@ const SoundGrid = forwardRef((_, ref) => {
         <GiMusicalKeyboard size={30} />
       </div>
       <div className="flex items-center justify-center relative">
-        <Grid enabledBoxes={enabledBoxes} setEnabledBoxes={setEnabledBoxes} />
+        <Grid enabledBoxes={enabledBoxes} setEnabledBoxes={setEnabledBoxes} linePosition={linePosition} />
         <div
           className="absolute top-0 left-0 w-full h-full pointer-events-none z-20"
           style={{

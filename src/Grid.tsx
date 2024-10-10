@@ -4,9 +4,14 @@ import Box from "./Box";
 interface GridProps {
   enabledBoxes: boolean[][];
   setEnabledBoxes: React.Dispatch<React.SetStateAction<boolean[][]>>;
+  linePosition: number;
 }
 
-const Grid: React.FC<GridProps> = ({ enabledBoxes, setEnabledBoxes }) => {
+const Grid: React.FC<GridProps> = ({
+  enabledBoxes,
+  setEnabledBoxes,
+  linePosition,
+}) => {
   const toggleBox = (row: number, col: number) => {
     const newEnabledBoxes = [...enabledBoxes];
     newEnabledBoxes[row][col] = !newEnabledBoxes[row][col];
@@ -20,6 +25,8 @@ const Grid: React.FC<GridProps> = ({ enabledBoxes, setEnabledBoxes }) => {
           <Box
             key={`${rowIndex}-${colIndex}`}
             isEnabled={isEnabled}
+            rowIndex={rowIndex}
+            linePosition={linePosition}
             toggleBox={() => toggleBox(rowIndex, colIndex)}
           />
         ))
