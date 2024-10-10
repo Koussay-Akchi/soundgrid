@@ -39,7 +39,7 @@ const SoundGrid = forwardRef((_, ref) => {
     Array.from({ length: ROWS }, () => Array(10).fill(false))
   );
   const [selectedInstrument, setSelectedInstrument] = useState(
-    instruments[0].name
+    "acoustic_grand_piano"
   );
 
   const instrumentRef = useRef<Soundfont.Player | null>(null);

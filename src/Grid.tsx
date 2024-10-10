@@ -13,11 +13,17 @@ const Grid: React.FC<GridProps> = ({
   linePosition,
 }) => {
   const toggleBox = (row: number, col: number) => {
-    const newEnabledBoxes = [...enabledBoxes];
-    newEnabledBoxes[row][col] = !newEnabledBoxes[row][col];
-    setEnabledBoxes(newEnabledBoxes);
+    setEnabledBoxes((prevEnabledBoxes) => {
+      return prevEnabledBoxes.map((rowArray, rowIndex) =>
+        rowIndex === row
+          ? rowArray.map((isEnabled, colIndex) =>
+              colIndex === col ? !isEnabled : isEnabled
+            )
+          : rowArray
+      );
+    });
   };
-
+  
   return (
     <div className="grid grid-cols-10 gap-1">
       {enabledBoxes.map((row, rowIndex) =>
@@ -35,4 +41,4 @@ const Grid: React.FC<GridProps> = ({
   );
 };
 
-export default Grid;
+export default React.memo(Grid);
