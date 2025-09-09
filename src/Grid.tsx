@@ -5,14 +5,18 @@ interface GridProps {
   enabledBoxes: Set<string>;
   setEnabledBoxes: React.Dispatch<React.SetStateAction<Set<string>>>;
   linePosition: number;
+  onUserInteraction?: () => void;
 }
 
 const Grid: React.FC<GridProps> = ({
   enabledBoxes,
   setEnabledBoxes,
   linePosition,
+  onUserInteraction,
 }) => {
   const toggleBox = (row: number, col: number) => {
+    onUserInteraction?.();
+    
     setEnabledBoxes((prevEnabledBoxes) => {
       const newEnabledBoxes = new Set(prevEnabledBoxes);
       const boxKey = `${row}-${col}`;

@@ -117,12 +117,18 @@ const SoundGrid = forwardRef((_, ref) => {
 
   const loadInstrument = useCallback(async (instrumentName: string) => {
     if (!audioContextRef.current) return;
-    await ensureAudioContextRunning();
+    
+    const audioReady = await ensureAudioContextRunning();
+    if (!audioReady) {
+      return;
+    }
+    
     const cached = playersCacheRef.current.get(instrumentName);
     if (cached) {
       instrumentRef.current = cached;
       return;
     }
+    
     const player = await createPlayer(instrumentName);
     if (player) {
       playersCacheRef.current.set(instrumentName, player);
@@ -131,17 +137,14 @@ const SoundGrid = forwardRef((_, ref) => {
   }, [ensureAudioContextRunning, createPlayer]);
 
   useEffect(() => {
-    loadInstrument(selectedInstrument);
-  }, [selectedInstrument, loadInstrument]);
-
-  useEffect(() => {
-    if (audioContextRef.current) {
+    if (isAudioReady) {
       loadInstrument(selectedInstrument);
     }
-  }, [loadInstrument, selectedInstrument]);
+  }, [selectedInstrument, loadInstrument, isAudioReady]);
 
   useEffect(() => {
-    if (!audioContextRef.current) return;
+    if (!isAudioReady || !audioContextRef.current) return;
+    
     let cancelled = false;
     (async () => {
       for (const inst of instruments) {
@@ -151,15 +154,15 @@ const SoundGrid = forwardRef((_, ref) => {
           if (!cancelled && player) {
             playersCacheRef.current.set(inst.name, player);
           }
-        } catch {
-          // Ignore individual preload failures
+        } catch (error) {
+          console.error(`Failed to preload ${inst.name}:`, error);
         }
       }
     })();
     return () => {
       cancelled = true;
     };
-  }, [createPlayer]);
+  }, [createPlayer, isAudioReady]);
 
   useImperativeHandle(ref, () => ({
     resetAllBoxes: () => {
@@ -221,8 +224,10 @@ const SoundGrid = forwardRef((_, ref) => {
                   : "hover:text-blue-300"
               }`}
               onClick={async () => {
-                await ensureAudioContextRunning();
-                setSelectedInstrument(instrument.name);
+                const audioReady = await ensureAudioContextRunning();
+                if (audioReady) {
+                  setSelectedInstrument(instrument.name);
+                }
               }}
             />
           </div>
@@ -233,6 +238,9 @@ const SoundGrid = forwardRef((_, ref) => {
           enabledBoxes={enabledBoxes}
           setEnabledBoxes={setEnabledBoxes}
           linePosition={linePosition}
+          onUserInteraction={async () => {
+            await ensureAudioContextRunning();
+          }}
         />
         <div
           className="absolute top-0 left-0 w-full h-full pointer-events-none z-20"
