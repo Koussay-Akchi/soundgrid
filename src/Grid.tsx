@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useCallback, useMemo } from "react";
 import Box from "./Box";
 
 interface GridProps {
@@ -14,37 +14,48 @@ const Grid: React.FC<GridProps> = ({
   linePosition,
   onUserInteraction,
 }) => {
-  const toggleBox = (row: number, col: number) => {
+  const toggleBox = useCallback((row: number, col: number) => {
     onUserInteraction?.();
     
     setEnabledBoxes((prevEnabledBoxes) => {
-      const newEnabledBoxes = new Set(prevEnabledBoxes);
       const boxKey = `${row}-${col}`;
+      const newEnabledBoxes = new Set(prevEnabledBoxes);
+      
       if (newEnabledBoxes.has(boxKey)) {
         newEnabledBoxes.delete(boxKey);
       } else {
         newEnabledBoxes.add(boxKey);
       }
+      
       return newEnabledBoxes;
     });
-  };
+  }, [setEnabledBoxes, onUserInteraction]);
 
-  const isEnabled = (row: number, col: number) =>
-    enabledBoxes.has(`${row}-${col}`);
+  const isEnabled = useCallback((row: number, col: number) =>
+    enabledBoxes.has(`${row}-${col}`), [enabledBoxes]);
 
-  return (
-    <div className="grid grid-cols-10 gap-1">
-      {Array.from({ length: 16 }, (_, rowIndex) =>
-        Array.from({ length: 10 }, (_, colIndex) => (
+  const gridCells = useMemo(() => {
+    const cells = [];
+    for (let rowIndex = 0; rowIndex < 16; rowIndex++) {
+      for (let colIndex = 0; colIndex < 10; colIndex++) {
+        const key = `${rowIndex}-${colIndex}`;
+        cells.push(
           <Box
-            key={`${rowIndex}-${colIndex}`}
+            key={key}
             isEnabled={isEnabled(rowIndex, colIndex)}
             rowIndex={rowIndex}
             linePosition={linePosition}
             toggleBox={() => toggleBox(rowIndex, colIndex)}
           />
-        ))
-      )}
+        );
+      }
+    }
+    return cells;
+  }, [isEnabled, linePosition, toggleBox]);
+
+  return (
+    <div className="grid grid-cols-10 gap-1">
+      {gridCells}
     </div>
   );
 };

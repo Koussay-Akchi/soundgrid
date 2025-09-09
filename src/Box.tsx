@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo } from "react";
 
 interface BoxProps {
   isEnabled: boolean;
@@ -13,16 +13,24 @@ const Box: React.FC<BoxProps> = ({
   linePosition,
   rowIndex,
 }) => {
+  const className = useMemo(() => {
+    const baseClasses = "h-8 w-8 transition-all duration-200 z-30 rounded-md";
+    
+    if (!isEnabled) {
+      return `${baseClasses} bg-gray-800`;
+    }
+    
+    if (rowIndex === linePosition) {
+      return `${baseClasses} bg-gray-800`;
+    }
+    
+    return `${baseClasses} bg-white shadow-sm shadow-white`;
+  }, [isEnabled, rowIndex, linePosition]);
+
   return (
     <div
       onClick={toggleBox}
-      className={`h-8 w-8 ${
-        isEnabled
-          ? rowIndex === linePosition
-            ? " bg-gray-800"
-            : "bg-white shadow-sm shadow-white "
-          : "bg-gray-800"
-      } transition-all duration-200 z-30 rounded-md`}
+      className={className}
     />
   );
 };
