@@ -42,25 +42,124 @@ const SoundGrid = forwardRef((_, ref) => {
 
   const instrumentRef = useRef<Soundfont.Player | null>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
+  const playersCacheRef = useRef<Map<string, Soundfont.Player>>(new Map());
+  const [isAudioReady, setIsAudioReady] = useState(false);
 
   useEffect(() => {
-    audioContextRef.current = new (window.AudioContext ||
-      window.AudioContext)();
-    loadInstrument(selectedInstrument);
-
+    const w = window as unknown as {
+      AudioContext: typeof AudioContext;
+      webkitAudioContext?: typeof AudioContext;
+    };
+    const AudioCtx = w.AudioContext || w.webkitAudioContext!;
+    audioContextRef.current = new AudioCtx();
+    
     return () => {
       audioContextRef.current?.close();
     };
-  }, [selectedInstrument]);
+  }, []);
 
-  const loadInstrument = async (instrumentName: string) => {
-    if (audioContextRef.current) {
-      instrumentRef.current = await Soundfont.instrument(
-        audioContextRef.current,
-        instrumentName as Soundfont.InstrumentName
-      );
+  const ensureAudioContextRunning = useCallback(async () => {
+    if (!audioContextRef.current) return false;
+    
+    if (audioContextRef.current.state === "suspended") {
+      try {
+        await audioContextRef.current.resume();
+        setIsAudioReady(true);
+        return true;
+      } catch (error) {
+        console.error("Failed to resume AudioContext:", error);
+        return false;
+      }
     }
-  };
+    
+    if (audioContextRef.current.state === "running") {
+      setIsAudioReady(true);
+      return true;
+    }
+    
+    return false;
+  }, []);
+
+  const createPlayer = useCallback(async (instrumentName: string) => {
+    if (!audioContextRef.current) return null;
+    const ac = audioContextRef.current;
+    
+    try {
+      const localPlayer = await Soundfont.instrument(
+        ac,
+        instrumentName as Soundfont.InstrumentName,
+        {
+          nameToUrl: (name: string, soundfont: string = "MusyngKite", format: string = "mp3") => {
+            const url = `/soundfonts/${soundfont}/${name}-${format}.js`;
+            return url;
+          },
+        }
+      );
+      return localPlayer;
+    } catch (error) {
+      console.warn(`Local soundfont not found for ${instrumentName}, falling back to CDN:`, error);
+    }
+
+    try {
+      const remotePlayer = await Soundfont.instrument(
+        ac,
+        instrumentName as Soundfont.InstrumentName,
+        {
+          soundfont: "MusyngKite",
+        }
+      );
+      return remotePlayer;
+    } catch (error) {
+      console.error(`Failed to load soundfont ${instrumentName}:`, error);
+      return null;
+    }
+  }, []);
+
+  const loadInstrument = useCallback(async (instrumentName: string) => {
+    if (!audioContextRef.current) return;
+    await ensureAudioContextRunning();
+    const cached = playersCacheRef.current.get(instrumentName);
+    if (cached) {
+      instrumentRef.current = cached;
+      return;
+    }
+    const player = await createPlayer(instrumentName);
+    if (player) {
+      playersCacheRef.current.set(instrumentName, player);
+      instrumentRef.current = player;
+    }
+  }, [ensureAudioContextRunning, createPlayer]);
+
+  useEffect(() => {
+    loadInstrument(selectedInstrument);
+  }, [selectedInstrument, loadInstrument]);
+
+  useEffect(() => {
+    if (audioContextRef.current) {
+      loadInstrument(selectedInstrument);
+    }
+  }, [loadInstrument, selectedInstrument]);
+
+  useEffect(() => {
+    if (!audioContextRef.current) return;
+    let cancelled = false;
+    (async () => {
+      for (const inst of instruments) {
+        if (playersCacheRef.current.has(inst.name)) continue;
+        try {
+          const player = await createPlayer(inst.name);
+          if (!cancelled && player) {
+            playersCacheRef.current.set(inst.name, player);
+          }
+        } catch {
+          // Ignore individual preload failures
+        }
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [createPlayer]);
 
   useImperativeHandle(ref, () => ({
     resetAllBoxes: () => {
@@ -121,7 +220,10 @@ const SoundGrid = forwardRef((_, ref) => {
                   ? "text-blue-500"
                   : "hover:text-blue-300"
               }`}
-              onClick={() => setSelectedInstrument(instrument.name)}
+              onClick={async () => {
+                await ensureAudioContextRunning();
+                setSelectedInstrument(instrument.name);
+              }}
             />
           </div>
         ))}
@@ -146,3 +248,4 @@ const SoundGrid = forwardRef((_, ref) => {
 });
 
 export default SoundGrid;
+
