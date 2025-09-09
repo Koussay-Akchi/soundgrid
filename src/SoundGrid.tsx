@@ -77,6 +77,7 @@ const SoundGrid = forwardRef((_, ref) => {
   const audioContextRef = useRef<AudioContext | null>(null);
   const playersCacheRef = useRef<Map<string, Soundfont.Player>>(new Map());
   const intervalRef = useRef<number | null>(null);
+  const audioResumePromiseRef = useRef<Promise<boolean> | null>(null);
   const [isAudioReady, setIsAudioReady] = useState(false);
 
   const audioContext = useMemo(() => {
@@ -101,20 +102,30 @@ const SoundGrid = forwardRef((_, ref) => {
     const ctx = audioContextRef.current;
     if (!ctx) return false;
     
-    if (ctx.state === "suspended") {
-      try {
-        await ctx.resume();
-        setIsAudioReady(true);
-        return true;
-      } catch (error) {
-        console.error("Failed to resume AudioContext:", error);
-        return false;
-      }
-    }
-    
     if (ctx.state === "running") {
       setIsAudioReady(true);
       return true;
+    }
+    
+    if (ctx.state === "suspended") {
+      if (audioResumePromiseRef.current) {
+        return audioResumePromiseRef.current;
+      }
+      
+      audioResumePromiseRef.current = (async () => {
+        try {
+          await ctx.resume();
+          setIsAudioReady(true);
+          audioResumePromiseRef.current = null;
+          return true;
+        } catch (error) {
+          console.error("Failed to resume AudioContext:", error);
+          audioResumePromiseRef.current = null;
+          return false;
+        }
+      })();
+      
+      return audioResumePromiseRef.current;
     }
     
     return false;
@@ -210,17 +221,12 @@ const SoundGrid = forwardRef((_, ref) => {
       const ctx = audioContextRef.current;
       if (!player || !ctx) return;
       
-      const notesToPlay: string[] = [];
       const stopTime = ctx.currentTime + NOTE_DURATION;
       
       for (let colIndex = 0; colIndex < NOTES.length; colIndex++) {
         if (enabledBoxes.has(`${rowIndex}-${colIndex}`)) {
-          notesToPlay.push(NOTES[colIndex]);
+          player.play(NOTES[colIndex]).stop(stopTime);
         }
-      }
-
-      if (notesToPlay.length > 0) {
-        notesToPlay.forEach((note) => player.play(note).stop(stopTime));
       }
     },
     [enabledBoxes]
@@ -234,7 +240,11 @@ const SoundGrid = forwardRef((_, ref) => {
     intervalRef.current = setInterval(() => {
       setLinePosition((prev) => {
         const newPosition = (prev + 1) % ROWS;
-        playSoundsForRow(newPosition);
+        
+        setTimeout(() => {
+          playSoundsForRow(newPosition);
+        }, 0);
+        
         return newPosition;
       });
     }, INTERVAL_TIME);
@@ -254,8 +264,8 @@ const SoundGrid = forwardRef((_, ref) => {
     }
   }, [ensureAudioContextRunning]);
 
-  const handleUserInteraction = useCallback(async () => {
-    await ensureAudioContextRunning();
+  const handleUserInteraction = useCallback(() => {
+    ensureAudioContextRunning().catch(console.error);
   }, [ensureAudioContextRunning]);
 
   const progressStyle = useMemo(() => ({

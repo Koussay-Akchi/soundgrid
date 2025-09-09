@@ -15,8 +15,6 @@ const Grid: React.FC<GridProps> = ({
   onUserInteraction,
 }) => {
   const toggleBox = useCallback((row: number, col: number) => {
-    onUserInteraction?.();
-    
     setEnabledBoxes((prevEnabledBoxes) => {
       const boxKey = `${row}-${col}`;
       const newEnabledBoxes = new Set(prevEnabledBoxes);
@@ -29,6 +27,8 @@ const Grid: React.FC<GridProps> = ({
       
       return newEnabledBoxes;
     });
+    
+    onUserInteraction?.();
   }, [setEnabledBoxes, onUserInteraction]);
 
   const isEnabled = useCallback((row: number, col: number) =>
