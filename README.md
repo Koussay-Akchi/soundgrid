@@ -3,7 +3,7 @@ An interactive sound grid where users can compose simple musical patterns by tog
 
 Each row represents a step in time (2 seconds), and each column corresponds to a different musical note. As the playback line moves across the grid, it triggers the notes in the active cells. 
 
-## 👉 [Live website](https://soundgrid.web.app/)
+## 👉 [Live website](https://soundgrid.koussay.tn/)
 <div style="display: flex; gap: 20px;">
     <img src="/soundgrid.png" alt="screenshot" height="300">
 </div>
