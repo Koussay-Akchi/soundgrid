@@ -17,7 +17,7 @@ import {
   GiMusicalKeyboard,
 } from "react-icons/gi";
 import Soundfont from "soundfont-player";
-import { FaGuitar } from "react-icons/fa";
+import { FaGuitar, FaSpinner } from "react-icons/fa";
 import { TbTriangleOff } from "react-icons/tb";
 import { MdKeyboardArrowDown } from "react-icons/md";
 
@@ -41,27 +41,34 @@ const DEFAULT_INSTRUMENT = "acoustic_grand_piano";
 interface InstrumentIconProps {
   instrument: (typeof INSTRUMENTS)[number];
   isSelected: boolean;
+  isLoading: boolean;
   onClick: () => void;
 }
 
-const InstrumentIcon = memo<InstrumentIconProps>(({ instrument, isSelected, onClick }) => {
+const InstrumentIcon = memo<InstrumentIconProps>(({ instrument, isSelected, isLoading, onClick }) => {
   const IconComponent = instrument.icon;
   
   return (
     <div className="relative">
-      {isSelected && (
+      {isSelected && !isLoading && (
         <MdKeyboardArrowDown
           className="absolute -top-4 left-1/2 transform -translate-x-1/2 text-white"
           size={20}
         />
       )}
-      <IconComponent
-        size={30}
-        className={`cursor-pointer ${
-          isSelected ? "text-blue-500" : "hover:text-blue-300"
-        }`}
-        onClick={onClick}
-      />
+      {isLoading ? (
+        <div className="flex items-center justify-center" style={{ width: 30, height: 30 }}>
+          <FaSpinner size={24} className="animate-spin text-gray-400" />
+        </div>
+      ) : (
+        <IconComponent
+          size={30}
+          className={`cursor-pointer transition-colors duration-200 ${
+            isSelected ? "text-blue-500" : "hover:text-blue-300"
+          }`}
+          onClick={onClick}
+        />
+      )}
     </div>
   );
 });
@@ -72,6 +79,7 @@ const SoundGrid = forwardRef((_, ref) => {
   const [linePosition, setLinePosition] = useState(0);
   const [enabledBoxes, setEnabledBoxes] = useState<Set<string>>(new Set());
   const [selectedInstrument, setSelectedInstrument] = useState(DEFAULT_INSTRUMENT);
+  const [loadingInstruments, setLoadingInstruments] = useState<Set<string>>(new Set());
 
   const instrumentRef = useRef<Soundfont.Player | null>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
@@ -135,25 +143,38 @@ const SoundGrid = forwardRef((_, ref) => {
     const ac = audioContextRef.current;
     if (!ac) return null;
     
+    setLoadingInstruments(prev => {
+      const next = new Set(prev);
+      next.add(instrumentName);
+      return next;
+    });
+    
+    let player = null;
     const localOptions = {
       nameToUrl: (name: string, soundfont = "MusyngKite", format = "mp3") => 
         `/soundfonts/${soundfont}/${name}-${format}.js`,
     };
     
     try {
-      return await Soundfont.instrument(ac, instrumentName as Soundfont.InstrumentName, localOptions);
+      player = await Soundfont.instrument(ac, instrumentName as Soundfont.InstrumentName, localOptions);
     } catch (error) {
       console.warn(`Local soundfont not found for ${instrumentName}, falling back to CDN:`, error);
+      try {
+        player = await Soundfont.instrument(ac, instrumentName as Soundfont.InstrumentName, {
+          soundfont: "MusyngKite",
+        });
+      } catch (error2) {
+        console.error(`Failed to load soundfont ${instrumentName}:`, error2);
+      }
     }
 
-    try {
-      return await Soundfont.instrument(ac, instrumentName as Soundfont.InstrumentName, {
-        soundfont: "MusyngKite",
-      });
-    } catch (error) {
-      console.error(`Failed to load soundfont ${instrumentName}:`, error);
-      return null;
-    }
+    setLoadingInstruments(prev => {
+      const next = new Set(prev);
+      next.delete(instrumentName);
+      return next;
+    });
+
+    return player;
   }, []);
 
   const loadInstrument = useCallback(async (instrumentName: string) => {
@@ -283,6 +304,7 @@ const SoundGrid = forwardRef((_, ref) => {
             key={instrument.name}
             instrument={instrument}
             isSelected={selectedInstrument === instrument.name}
+            isLoading={loadingInstruments.has(instrument.name)}
             onClick={() => handleInstrumentClick(instrument.name)}
           />
         ))}
