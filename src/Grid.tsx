@@ -43,9 +43,10 @@ const Grid: React.FC<GridProps> = ({
           <Box
             key={key}
             isEnabled={isEnabled(rowIndex, colIndex)}
+            isLineOver={rowIndex === linePosition}
             rowIndex={rowIndex}
-            linePosition={linePosition}
-            toggleBox={() => toggleBox(rowIndex, colIndex)}
+            colIndex={colIndex}
+            toggleBox={toggleBox}
           />
         );
       }

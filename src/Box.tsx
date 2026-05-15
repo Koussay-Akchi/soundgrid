@@ -2,34 +2,36 @@ import React, { useMemo } from "react";
 
 interface BoxProps {
   isEnabled: boolean;
-  linePosition: number;
+  isLineOver: boolean;
   rowIndex: number;
-  toggleBox: () => void;
+  colIndex: number;
+  toggleBox: (row: number, col: number) => void;
 }
 
 const Box: React.FC<BoxProps> = ({
   isEnabled,
-  toggleBox,
-  linePosition,
+  isLineOver,
   rowIndex,
+  colIndex,
+  toggleBox,
 }) => {
   const className = useMemo(() => {
-    const baseClasses = "h-8 w-8 transition-all duration-200 z-30 rounded-md";
+    const baseClasses = "h-8 w-8 transition-all duration-200 z-30 rounded-md cursor-pointer";
     
     if (!isEnabled) {
       return `${baseClasses} bg-gray-800`;
     }
     
-    if (rowIndex === linePosition) {
+    if (isLineOver) {
       return `${baseClasses} bg-gray-800`;
     }
     
     return `${baseClasses} bg-white shadow-sm shadow-white`;
-  }, [isEnabled, rowIndex, linePosition]);
+  }, [isEnabled, isLineOver]);
 
   return (
     <div
-      onClick={toggleBox}
+      onClick={() => toggleBox(rowIndex, colIndex)}
       className={className}
     />
   );
